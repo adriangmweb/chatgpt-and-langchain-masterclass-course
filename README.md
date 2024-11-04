@@ -28,7 +28,13 @@ This project is part of the "ChatGPT and LangChain: The Complete Developer's Mas
 
 ## Usage
 
-To run the project, execute the following command:
+To run a project, first navigate to its directory
+
+```sh
+cd <your-project>
+```
+
+Then execute the following command:
 
 ```sh
 python main.py --task "<your-task>" --language "<your-language>"
