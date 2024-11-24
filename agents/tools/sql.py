@@ -1,5 +1,7 @@
 import sqlite3
 from langchain_community.tools import Tool
+from pydantic.v1 import BaseModel
+from typing import List
 import os
 
 current_dir = os.path.dirname(os.path.abspath(__file__))
@@ -26,10 +28,14 @@ def run_sqlite_query(query: str) -> str:
     except sqlite3.OperationalError as err:
         return f"The following error occurred: {str(err)}"
     
+class RunQueryArgsSchema(BaseModel):
+    query: str
+
 run_query_tool = Tool.from_function(
     name="run_sqlite_query",
     description="Run a sqlite query against the database",
-    func=run_sqlite_query
+    func=run_sqlite_query,
+    args_schema=RunQueryArgsSchema
 )
 
 list_tables_tool = Tool.from_function(
@@ -38,8 +44,12 @@ list_tables_tool = Tool.from_function(
     func=list_tables
 )
 
+class DescribeTablesArgsSchema(BaseModel):
+    table_names: List[str]
+
 describe_tables_tool = Tool.from_function(
     name="describe_tables",
     description="Given a list of table names, describe the tables",
-    func=describe_table
+    func=describe_table,
+    args_schema=DescribeTablesArgsSchema
 )
