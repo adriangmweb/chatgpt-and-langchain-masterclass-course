@@ -5,6 +5,7 @@ from langchain.prompts import (
     MessagesPlaceholder
 )
 from langchain.schema import SystemMessage
+from langchain.memory import ConversationBufferMemory
 from langchain.agents import AgentExecutor, OpenAIFunctionsAgent
 from dotenv import load_dotenv
 
@@ -22,9 +23,15 @@ prompt = ChatPromptTemplate(
             f"You are a helpful assistant that can answer questions about a SQLite database with the following tables: {tables}."
             "Do not make any assumptions about what tables or columns exist. Instead, use the `describe_tables` tool to learn about the tables."
         )),
+        MessagesPlaceholder(variable_name="chat_history"),
         HumanMessagePromptTemplate.from_template("{input}"),
         MessagesPlaceholder(variable_name="agent_scratchpad")
     ]
+)
+
+memory = ConversationBufferMemory(
+    memory_key="chat_history",
+    return_messages=True
 )
 
 tools = [
@@ -42,8 +49,9 @@ agent = OpenAIFunctionsAgent(
 agent_executor = AgentExecutor(
     agent=agent,
     tools=tools,
-    verbose=True
+    verbose=True,
+    memory=memory
 )
 
 agent_executor("Summarize the top 5 most popular products and write an HTML report of the results")
-# agent_executor("How many users have a shipping address?")
+agent_executor("Do the same with the top 5 most popular categories")
