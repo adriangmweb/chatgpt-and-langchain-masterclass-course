@@ -367,5 +367,5 @@ pyrightconfig.json
 # ChromaDB
 *.parquet
 *.sqlite3
-embeddings/
+*.bin
 chroma/
