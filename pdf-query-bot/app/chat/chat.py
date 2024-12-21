@@ -9,6 +9,7 @@ from app.web.api import (
     set_conversation_components,
     get_conversation_components
 )
+from app.chat.score import random_component_by_score
 
 def select_component(
     component_type,
@@ -26,7 +27,7 @@ def select_component(
     else:
         # this is the first message in the conversation
         # so we need to pick a random component to use
-        random_component_name = random.choice(list(component_map.keys()))
+        random_component_name = random_component_by_score(component_type, component_map)
         build_component = component_map[random_component_name]
         component = build_component(chat_args)
         set_conversation_components(
