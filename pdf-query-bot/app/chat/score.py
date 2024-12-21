@@ -1,3 +1,47 @@
+import random
+from app.chat.redis import client
+
+def random_component_by_score(component_type: str, component_map: dict) -> str:
+    """
+    This function retrieves the scores for a given component type from the langfuse client.
+    The scores are aggregated and used to determine a random component name based on the scores.
+    The probability of selecting a component is proportional to its score.
+
+    :param component_type: The type of component for which to select a random component.
+    :param component_map: A dictionary mapping component names to their respective build functions.
+
+    :return: The name of the randomly selected component.
+
+    Example Usage:
+
+    random_component_by_score('llm', llm_map)
+    """
+
+    if component_type not in ['llm', 'retriever', 'memory']:
+        raise ValueError("Invalid component type")
+    
+    score_values = client.hgetall(f"{component_type}_score_values")
+    score_counts = client.hgetall(f"{component_type}_score_counts")
+    
+    component_names = component_map.keys()
+    average_scores = {}
+    for name in component_names:
+        score = int(score_values.get(name, 1))
+        count = int(score_counts.get(name, 1))
+        average = score / count
+        average_scores[name] = max(average, 0.1)
+        
+    print(average_scores)
+        
+    # Weighted random selection
+    sum_scores = sum(average_scores.values())
+    random_value = random.uniform(0, sum_scores)
+    cumulative = 0
+    for name, score in average_scores.items():
+        cumulative += score
+        if cumulative >= random_value:
+            return name
+
 def score_conversation(
     conversation_id: str, score: float, llm: str, retriever: str, memory: str
 ) -> None:
@@ -17,7 +61,16 @@ def score_conversation(
     score_conversation('abc123', 0.75, 'llm_info', 'retriever_info', 'memory_info')
     """
 
-    pass
+    score = min(max(score, 0), 1)
+    
+    client.hincrby("llm_score_values", llm, score)
+    client.hincrby("llm_score_counts", llm, 1)
+    
+    client.hincrby("retriever_score_values", retriever, score)
+    client.hincrby("retriever_score_counts", retriever, 1)
+    
+    client.hincrby("memory_score_values", memory, score)
+    client.hincrby("memory_score_counts", memory, 1)
 
 
 def get_scores():
