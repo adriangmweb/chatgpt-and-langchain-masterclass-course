@@ -6,7 +6,7 @@ class StreamingHandler(BaseCallbackHandler):
         self.streaming_run_ids = set()
         
     def on_chat_model_start(self, serialized, messages, run_id, **kwargs):
-        if serialized["kwarfs"]["streaming"]:
+        if serialized["kwargs"]["streaming"]:
             self.streaming_run_ids.add(run_id)
     
     def on_llm_new_token(self, token, **kwargs):
